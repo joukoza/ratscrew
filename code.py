@@ -127,6 +127,9 @@ def card_loader():
     
     return playing_cards
 
+def master_update():
+    print("Sas")
+
 def main():
 
     pygame.init()
