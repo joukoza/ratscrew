@@ -7,7 +7,93 @@ WHITE = (255,255,255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
+def victory_check(screen, P1_rem, P2_rem):
+    if P1_rem == 0:
+        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 36)
+        textObj = fontObj.render("P2 won the game", True, RED)
+        screen.blit(textObj, (100, 0))
+        pygame.display.update()
+        time.sleep(2)
+        sys.exit()
+    elif P2_rem == 0:
+        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 36)
+        textObj = fontObj.render("P1 won the game", True, RED)
+        screen.blit(textObj, (100, 0))
+        pygame.display.update()
+        time.sleep(2)
+        sys.exit(0)
 
+def game_turn(screen, card_files, P_cards, card_pile):
+    '''Handles the regular turns of each player.'''
+    card_location = (140, 40)
+    # Stores the image file of the next card.
+    next_card = card_files[P_cards[0]]
+    screen.blit(next_card, card_location)
+    card_pile.append(P_cards[0])
+    P_cards.pop(0)
+
+def remaining_cards(screen, P1_rem, P2_rem, pile_rem):
+    '''Draws the amount of remaining cards for each player on the screen.'''
+    # Draws over the previous text so that the screen doesn't get cluttered.
+    pygame.draw.rect(screen, BLACK, (0,0, 105, 30))
+    pygame.draw.rect(screen, BLACK, (390, 470, 105, 30))
+    pygame.draw.rect(screen, BLACK, (200, 470, 115, 30))
+    fontObj = pygame.font.Font("./data_files/Rationale-Regular.otf", 25)
+    textObj = fontObj.render("P1 cards: {0}".format(P1_rem),
+                             True, WHITE)
+    textObj2 = fontObj.render("P2 cards: {0}".format(P2_rem),
+                              True, WHITE)
+    textObj3 = fontObj.render("Card pile: {0}".format(pile_rem),
+                              True, WHITE)
+    screen.blit(textObj, (0, 0))
+    screen.blit(textObj2, (390, 470))
+    screen.blit(textObj3, (200, 470))
+
+def slap_check(screen, card_pile, player_cards, other_cards, player, turn):
+    '''Checks whether a slap was premature or victorious.'''
+    # A safeguard in case someone slaps before two cards have been played.
+    if len(card_pile) < 2:
+        current_card = "cmon"
+        previous_card = "lolnoob"
+    else:
+        current_card = card_pile[-1]
+        previous_card = card_pile[-2]
+    # Checks if the slapping player was victorious.
+    if current_card[1:] == previous_card[1:]:
+        # Adds the played cards to the slap winner's cards.
+        player_cards.extend(card_pile)
+        # Empties the played cards.
+        del card_pile[:]
+        # Renders the slap victory text on screen.
+        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 32)
+        textObj = fontObj.render("P{0} won the slap".format(player),
+                                 True, GREEN)
+        screen.blit(textObj, (125, 0))
+        pygame.display.update()
+        # Waits two seconds after a winning slap.
+        time.sleep(2)
+        # Removes the commands players input during the waiting period.
+        # Prevents other people's slaps from being registered.
+        pygame.event.clear()
+        screen.fill(BLACK)
+        # The winnder of the slap plays next.
+        return player
+    # If the player slapped prematurely, the other player gets given a card.
+    else:
+        other_cards.append(player_cards[0])
+        player_cards.pop(0)
+        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 32)
+        textObj = fontObj.render("P{0} lost the slap".format(player),
+                                 True, GREEN)
+        screen.blit(textObj, (125, 0))
+        pygame.display.update()
+        time.sleep(2)
+        pygame.event.clear()
+        pygame.draw.rect(screen, BLACK, (125, 5, 270, 35))
+        # The next turn remains unchanged.
+        return turn
+
+def card_loader():
     '''Loads the image files of all individual playing cards
     and saves them in a dictionary, which is then returned.'''
 
@@ -40,9 +126,6 @@ GREEN = (0, 255, 0)
         playing_cards[dict_key] = pygame.transform.scale(playing_cards[dict_key], dimensions)
     
     return playing_cards
-
-def placeholder():
-    print("This is a test")
 
 def main():
 
