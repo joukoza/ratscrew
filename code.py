@@ -90,6 +90,7 @@ def slap_check(screen, card_pile, player_cards, other_cards, player, turn):
         time.sleep(2)
         pygame.event.clear()
         pygame.draw.rect(screen, BLACK, (125, 5, 270, 35))
+        # The next turn remains unchanged.
         return turn
 
 def card_loader():
@@ -173,9 +174,11 @@ def main():
                     game_turn(screen, card_files, P2_cards, card_pile)
                     turn = 1
 
+            # Player 1 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 turn = slap_check(screen, card_pile, P1_cards, P2_cards, 1, turn)
 
+            # Player 2 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_k:
                 turn = slap_check(screen, card_pile, P2_cards, P1_cards, 2, turn)
 
@@ -184,8 +187,8 @@ def main():
             pygame.display.update()
 
             victory_check(screen, len(P1_cards), len(P2_cards))
+            
             if event.type == pygame.QUIT:
                 sys.exit()
-
 
 main()
