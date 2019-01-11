@@ -127,6 +127,8 @@ def card_loader():
     
     return playing_cards
 
+def placeholder
+
 def main():
 
     pygame.init()
