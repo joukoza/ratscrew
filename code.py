@@ -127,7 +127,11 @@ def card_loader():
     
     return playing_cards
 
-def placeholder
+def master_update():
+    print("Sas")
+
+def placeholder_update():
+    print("Ses")
 
 def main():
 
