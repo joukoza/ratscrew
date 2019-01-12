@@ -1,6 +1,5 @@
-import pygame
+import pygame, time
 from random import shuffle
-from time import sleep
 
 pygame.init()
 win_width, win_height = 1000, 700
@@ -45,16 +44,17 @@ def card_loader(players):
     player_packs = []
     for suit in suits:
         for i in range(1,14):
-            file_name = "./data_files/playing_cards_png/{0}of{1}.png"\
+            file_name = "./data_files/playing_cards_png/{0}_of_{1}.png"\
             .format(i, suit)
             img = pygame.image.load(file_name)
             img = pygame.transform.scale(img, dimensions)
             new_card = card(suit, i,img)
             playing_cards.append(new_card)
     number = round(52/players)
-    for i in range(0, players):
+    shuffle(playing_cards)
+    for i in range(0, 4):
         player_packs.append(player("Matti{0}".format(i), playing_cards[:number]))
-
+        del playing_cards[:number]
     return player_packs
 
 def setup(divider):
@@ -90,16 +90,62 @@ def remaining_cards(P1_rem, P2_rem, P3_rem, P4_rem, pile_rem):
 
 def game_turn(p_packs, card_pile, card_location):
     '''Handles the regular turns of each player.'''
-    next_card = p_packs[0]
+    next_card = p_packs.hand[0]
     win.blit(next_card.img, card_location)
-    card_pile.append(p_packs[0])
+    card_pile.append(p_packs.hand[0])
     # Deletes the played card from the player's hand.
-    p_packs.pop(0)
+    p_packs.hand.pop(0)
 
 def win_update():
 
     win.fill((0, 0, 0))
     pygame.display.update()
+
+def slap_check(card_pile, player_packs, player, turn, players):
+    '''Checks whether a slap was premature or victorious.'''
+    # A safeguard in case someone slaps before two cards have been played.
+    if len(card_pile) < 2:
+        current_card = "cmon"
+        previous_card = "lolnoob"
+    else:
+        current_card = card_pile[-1].value
+        previous_card = card_pile[-2].value
+    # Checks if the slapping player was victorious.
+    if current_card == previous_card:
+        # Adds the played cards to the slap winner's cards.
+        player_cards.extend(card_pile)
+        # Empties the played cards.
+        del card_pile[:]
+        # Renders the slap victory text on win.
+        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 32)
+        textObj = fontObj.render("P{0} won the slap".format(player),
+                                 True, GREEN)
+        win.blit(textObj, (125, 0))
+        pygame.display.update()
+        # Waits two seconds after a winning slap.
+        time.sleep(2)
+        # Removes the commands players input during the waiting period.
+        # Prevents other people's slaps from being registered.
+        pygame.event.clear()
+        win.fill(BLACK)
+        # The winnder of the slap plays next.
+        return player
+    # If the player slapped prematurely, the other player gets given a card.
+    else:
+        for i in range(0, players):
+            if len(player_packs) != 0:
+                player_packs[i].hand.append(player_packs[player].hand[0])
+                player_packs[player].hand.pop(0)
+        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 32)
+        textObj = fontObj.render("P{0} lost the slap".format(player),
+                                 True, GREEN)
+        win.blit(textObj, (125, 0))
+        pygame.display.update()
+        time.sleep(2)
+        pygame.event.clear()
+        pygame.draw.rect(win, BLACK, (125, 5, 270, 35))
+        # The next turn remains unchanged.
+        return turn
 
 
 def main():
@@ -145,11 +191,11 @@ def main():
 
             # Player 1 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
-                turn = slap_check(win, card_pile, P1_cards, P2_cards, 1, turn)
+                turn = slap_check(card_pile, player_packs, 1, turn, players)
 
             # Player 2 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_i:
-                turn = slap_check(win, card_pile, P2_cards, P1_cards, 2, turn)
+                turn = slap_check(card_pile, player_packs, 2, turn, players)
 
             # Player 3 slaps.
             if players == 3:
@@ -161,7 +207,7 @@ def main():
                     pass
             
             # Inserts the remaining card amounts onto the win.
-            remaining_cards(len(player_packs[0]), len(player_packs[1]), len(player_packs[2]), len(player_packs[3]), len(card_pile))
+            remaining_cards(len(player_packs[0].hand), len(player_packs[1].hand), len(player_packs[2].hand), len(player_packs[3].hand), len(card_pile))
 
 
             #victory_check(len(P1_cards), len(P2_cards))
@@ -171,7 +217,7 @@ def main():
         location = (x_location, y_location)
         if (ind/5 - round(ind/5) == 0):
             x_location = 140
-            #y_location = 40
+            y_location = 40
             location = (x_location, y_location)
         pygame.display.update()
         ind += 1
