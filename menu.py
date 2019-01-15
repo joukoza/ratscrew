@@ -11,10 +11,10 @@ class button():
         self.location = location
         self.size = size
         self.color = color
-        self.text = text
         self.drawcolor = self.color
+        self.text = text
         
-        ## Defines darker color for push animation
+        ## Defines a darker color for push animation
         colors = ['r', 'g', 'b']
         for i in range(3):
             if self.color[i] > 50:
@@ -28,24 +28,25 @@ class button():
         ## Draws the button
         rect = (self.location[0], self.location[1], self.size[0], \
         self.size[1])
-        pygame.draw.rect(self.surface, self.drawcolor, rect)
+        pygame.draw.rect(self.surface, self.drawcolor, rect)    
         
-        ## Calculates the right font size
-        button_size = (self.size[0], self.size[1])
         font_size = 53
         font_path = "./data_files/BlackOpsOne-Regular.ttf"
         font = pygame.font.SysFont(font_path, font_size)
         
+        ## Calculates the right font size
+        ## MIGHT BE HANDY AT SOME POINT! DO NOT DELETE!
+        ## button_size = (self.size[0], self.size[1])
         ## while font.size(self.text)[0] >= (button_size[0]) or \
-        ##font.size(self.text)[1] >= (button_size[1]):
+        ## font.size(self.text)[1] >= (button_size[1]):
         ##    font_size -= 1
         ##    font = pygame.font.SysFont(font_path, font_size)
 
         ## Writes the text on the button
         text_locationx = self.location[0] + (self.size[0] - \
-        font.size(self.text)[0]) // 2
+                         font.size(self.text)[0]) // 2
         text_locationy = self.location[1] + (self.size[1] - \
-        font.size(self.text)[1]) // 2
+                         font.size(self.text)[1]) // 2
         text_location = (text_locationx, text_locationy)
         text_surface = font.render(self.text, True, (255, 255, 255))
         self.surface.blit(text_surface, text_location)
@@ -69,7 +70,6 @@ class button():
 
 def menu():
     BLACK = (0, 0, 0)
-    WHITE = (255, 255, 255)
     RED = (200, 0, 0)
     
     text1 = "Play"
@@ -83,6 +83,7 @@ def menu():
     text3 = "Highscores"
     highscores = button(win, ((win_width - 200) // 2, (win_height - 100) // 2 + 200),\
     (200, 100), RED, text3)
+    
     running = True
     while running:
         for event in pygame.event.get():
@@ -90,13 +91,14 @@ def menu():
                 running = False
                 
         win.fill(BLACK)
+        
         play.update()
         play.show()
         settings.update()
         settings.show()
         highscores.update()
         highscores.show()
-        ## win.blit(text_surface, location)
+        
         pygame.display.update()
 
     pygame.quit()
