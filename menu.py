@@ -1,4 +1,6 @@
 import pygame
+import sys
+import ratscrew
 
 pygame.init()
 win_width, win_height = 1000, 700
@@ -13,8 +15,9 @@ class button():
         self.color = color
         self.drawcolor = self.color
         self.text = text
+        self.state = "NORMAL"
         
-        ## Defines a darker color for push animation
+        ## Defines a darker color for the push animation
         colors = ['r', 'g', 'b']
         for i in range(3):
             if self.color[i] > 50:
@@ -30,9 +33,9 @@ class button():
         self.size[1])
         pygame.draw.rect(self.surface, self.drawcolor, rect)    
         
-        font_size = 53
+        font_size = 27
         font_path = "./data_files/BlackOpsOne-Regular.ttf"
-        font = pygame.font.SysFont(font_path, font_size)
+        font = pygame.font.Font(font_path, font_size)
         
         ## Calculates the right font size
         ## MIGHT BE HANDY AT SOME POINT! DO NOT DELETE!
@@ -40,7 +43,9 @@ class button():
         ## while font.size(self.text)[0] >= (button_size[0]) or \
         ## font.size(self.text)[1] >= (button_size[1]):
         ##    font_size -= 1
-        ##    font = pygame.font.SysFont(font_path, font_size)
+        ##    font = pygame.font.Font(font_path, font_size)
+
+        ## print(font_size)
 
         ## Writes the text on the button
         text_locationx = self.location[0] + (self.size[0] - \
@@ -51,7 +56,7 @@ class button():
         text_surface = font.render(self.text, True, (255, 255, 255))
         self.surface.blit(text_surface, text_location)
 
-    def update(self):
+    def pressed(self):
         ## Gets states of all mouse buttons and position of the mouse
         mouse = pygame.mouse.get_pressed()
         mouse_pos = pygame.mouse.get_pos()
@@ -65,25 +70,38 @@ class button():
             y2 = self.location[1] + self.size[1]
             if x1 <= mouse_pos[0] <= x2  and y1 <= mouse_pos[1] <= y2:
                 self.drawcolor = self.darkcolor
+                self.state = "DOWN"
         else:
             self.drawcolor = self.color
+            
+            if self.state == "DOWN":
+                self.state = "UP"
+                return False
+            
+            if self.state == "UP":
+                self.state = "NORMAL"
+                return True
 
 def menu():
     BLACK = (0, 0, 0)
     RED = (200, 0, 0)
     
-    text1 = "Play"
-    play = button(win, ((win_width - 200) // 2, 100),\
+    text1 = "PLAY"
+    play = button(win, ((win_width - 200) // 2, 75),\
     (200, 100), RED, text1)
     
-    text2 = "Settings"
-    settings = button(win, ((win_width - 200) // 2, (win_height - 100) // 2), \
+    text2 = "SETTINGS"
+    settings = button(win, ((win_width - 200) // 2, 225), \
     (200, 100), RED, text2)
     
-    text3 = "Highscores"
-    highscores = button(win, ((win_width - 200) // 2, (win_height - 100) // 2 + 200),\
+    text3 = "HIGHSCORES"
+    highscores = button(win, ((win_width - 200) // 2, 375),\
     (200, 100), RED, text3)
     
+    text4 = "EXIT"
+    ext = button(win, ((win_width - 200) // 2, 525),\
+    (200, 100), RED, text4)
+
     running = True
     while running:
         for event in pygame.event.get():
@@ -92,15 +110,22 @@ def menu():
                 
         win.fill(BLACK)
         
-        play.update()
+        if play.pressed():
+            ratscrew.main()
         play.show()
-        settings.update()
-        settings.show()
-        highscores.update()
-        highscores.show()
         
+        settings.pressed()
+        settings.show()
+        
+        highscores.pressed()
+        highscores.show()
+
+        if ext.pressed():
+            sys.exit()
+        ext.show()
+
         pygame.display.update()
 
-    pygame.quit()
+    sys.exit()
 
 menu()
