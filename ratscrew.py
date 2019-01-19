@@ -1,4 +1,4 @@
-import pygame, time
+import pygame, time, sys
 from random import shuffle
 
 pygame.init()
@@ -13,7 +13,7 @@ GREEN = (0, 255, 0)
 class card():
     '''Depicts a playing card that has a suit and a value. Possible 
     suits and their symbols are 'clubs(c)', 'diamonds(d)', 'hearts(h)' and 
-    'spades(s)'. Possible values range from 1 to 13, where 1 stands for ace.
+    'spades(s)'. Possible values range from 2 to 14, where 14 stands for ace.
     '''
     def __init__(self, suit, value, img):
         self.suit = suit
@@ -43,7 +43,7 @@ def card_loader(players):
     suits = ["clubs", "diamonds", "hearts", "spades"]
     player_packs = []
     for suit in suits:
-        for i in range(1,14):
+        for i in range(2,15):
             file_name = "./data_files/playing_cards_png/{0}_of_{1}.png"\
             .format(i, suit)
             img = pygame.image.load(file_name)
@@ -57,11 +57,39 @@ def card_loader(players):
         del playing_cards[:amount]
     return player_packs
 
-def setup(divider):
-    playing_cards = card_loader()
-    number = round(52/divider)
-    player1 = playing_cards[:number]
-    return player1
+def victory_check(player_packs):
+    P1_cards = len(player_packs[0].hand)
+    P2_cards = len(player_packs[1].hand)
+    P3_cards = len(player_packs[2].hand)
+    P4_cards = len(player_packs[3].hand)
+    if P1_cards != 0 and P2_cards == 0 and P3_cards == 0 and P4_cards == 0:
+        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 36)
+        textObj = fontObj.render("P2 won the game", True, RED)
+        win.blit(textObj, (100, 0))
+        pygame.display.update()
+        time.sleep(2)
+        sys.exit()
+    elif P1_cards == 0 and P2_cards != 0 and P3_cards == 0 and P4_cards == 0:
+        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 36)
+        textObj = fontObj.render("P2 won the game", True, RED)
+        win.blit(textObj, (100, 0))
+        pygame.display.update()
+        time.sleep(2)
+        sys.exit(0)
+    elif P1_cards == 0 and P2_cards == 0 and P3_cards != 0 and P4_cards == 0:
+        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 36)
+        textObj = fontObj.render("P3 won the game", True, RED)
+        win.blit(textObj, (100, 0))
+        pygame.display.update()
+        time.sleep(2)
+        sys.exit(0)
+    elif P1_cards == 0 and P2_cards == 0 and P3_cards == 0 and P4_cards != 0:
+        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 36)
+        textObj = fontObj.render("P4 won the game", True, RED)
+        win.blit(textObj, (100, 0))
+        pygame.display.update()
+        time.sleep(2)
+        sys.exit(0)
 
 def remaining_cards(P1_rem, P2_rem, P3_rem, P4_rem, pile_rem):
     '''Draws the amount of remaining cards for each player on the win.'''
@@ -88,10 +116,11 @@ def remaining_cards(P1_rem, P2_rem, P3_rem, P4_rem, pile_rem):
     win.blit(textObj4, (0, 470))
     win.blit(textObj5, (200, 470))
 
-def game_turn(p_packs, card_pile, card_location):
+def game_turn(p_packs, card_pile, card_location, to_angle):
     '''Handles the regular turns of each player.'''
     next_card = p_packs.hand[0]
-    win.blit(next_card.img, card_location)
+    rotated_card = pygame.transform.rotate(next_card.img, to_angle)
+    win.blit(rotated_card, card_location)
     card_pile.append(p_packs.hand[0])
     # Deletes the played card from the player's hand.
     p_packs.hand.pop(0)
@@ -148,50 +177,70 @@ def slap_check(card_pile, player_packs, player, turn, players):
         # The next turn remains unchanged.
         return turn
 
-
 def main():
     players = 4
-    ind = 0
     turn = 1
-    x_location = 140
+    x_location = 40
     y_location = 40
+    angle = 0
+    amount = 0
     location = (x_location, y_location)
     running = True
     player_packs = card_loader(players)
     card_pile = []
     while running:
-        pygame.time.delay(200)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            #for i in range(players):
-            #    
+            # Checks if the card_pile is empty, so the face card rule isn't
+            # invoked before any cards have been played.
+            if card_pile:
+                # Checks if the last played card was a face card.
+                # (An ace, king, queen or jack.)
+                if card_pile[-1].value == 11 or card_pile[-1].value == 12\
+                or card_pile[-1].value == 13 or card_pile[-1].value == 14:
+                    amount = card_pile[-1].value-10
+                    if turn < 4:
+                        turn += 1
+                    else:
+                        turn = 1
+            
             if turn == 1:
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_w:
-                    game_turn(player_packs[0], card_pile, location)
+                if len(player_packs[0].hand) == 0:
                     turn = 2
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_w:
+                    game_turn(player_packs[0], card_pile, location, angle)
+                    if amount == 0:
+                        turn = 2
+                    angle -= 5
 
             elif turn == 2:
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_u:
-                    game_turn(player_packs[1], card_pile, location)
-                    if players == 2:
-                        turn = 1
-                    else:
+                if len(player_packs[1].hand) == 0:
+                    turn = 3
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_u:
+                    game_turn(player_packs[1], card_pile, location, angle)
+                    if amount == 0:
                         turn = 3
+                    angle -= 5
 
             elif turn == 3:
+                if len(player_packs[2].hand) == 0:
+                    turn = 4
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_s:
-                    game_turn(player_packs[2], card_pile, location)
-                    if players == 3:
-                        turn = 1
-                    else:
+                    game_turn(player_packs[2], card_pile, location, angle)
+                    if amount == 0:
                         turn = 4
+                    angle -= 5
 
             elif turn == 4:
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_j:
-                    game_turn(player_packs[3], card_pile, location)
+                if len(player_packs[3].hand) == 0:
                     turn = 1
-
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_j:
+                    game_turn(player_packs[3], card_pile, location, angle)
+                    if amount == 0:
+                        turn = 1
+                    angle -= 5
+            
             # Player 1 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 turn = slap_check(card_pile, player_packs, 1, turn, players)
@@ -201,32 +250,20 @@ def main():
                 turn = slap_check(card_pile, player_packs, 2, turn, players)
 
             # Player 3 slaps.
-            if players == 3 or players == 4:
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
-                    turn = slap_check(card_pile, player_packs, 3, turn, players)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
+                turn = slap_check(card_pile, player_packs, 3, turn, players)
             #Player 4 slaps.
-            if players == 4:
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_k:
-                    turn = slap_check(card_pile, player_packs, 4, turn, players)
-            
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_k:
+                turn = slap_check(card_pile, player_packs, 4, turn, players)
+
             # Inserts the remaining card amounts onto the win.
             remaining_cards(len(player_packs[0].hand), len(player_packs[1].hand),
             len(player_packs[2].hand), len(player_packs[3].hand), len(card_pile))
 
+            victory_check(player_packs)
 
-            #victory_check(len(P1_cards), len(P2_cards))
-
-        x_location += 10
-        y_location += 2
-        location = (x_location, y_location)
-        if (ind/5 - round(ind/5) == 0):
-            x_location = 140
-            y_location = 40
-            location = (x_location, y_location)
         pygame.display.update()
-        ind += 1
-        
+        victory_check(player_packs)
 
-    pygame.quit()
-
-main()
+if __name__ == "__main__":
+    main()
