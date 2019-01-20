@@ -1,4 +1,4 @@
-import pygame, time, sys
+import pygame, time
 from random import shuffle
 
 pygame.init()
@@ -27,13 +27,6 @@ class player():
         self.name = name
         self.hand = cards
 
-class deck():
-    def __init__(self, cards):
-        self.cards = cards
-
-    def shuffle(self):
-        shuffle(self.cards)
-
 def card_loader(players):
     '''Creates instances of all individual playing cards, assigning 
     corresponding suit, value and  image to each card.'''
@@ -50,11 +43,11 @@ def card_loader(players):
             img = pygame.transform.scale(img, dimensions)
             new_card = card(suit, i,img)
             playing_cards.append(new_card)
-    amount = round(52/players)
+    card_amount = round(52/players)
     shuffle(playing_cards)
     for i in range(4):
-        player_packs.append(player("Matti{0}".format(i), playing_cards[:amount]))
-        del playing_cards[:amount]
+        player_packs.append(player("Matti{0}".format(i), playing_cards[:card_amount]))
+        del playing_cards[:card_amount]
     return player_packs
 
 def victory_check(player_packs):
@@ -92,7 +85,7 @@ def victory_check(player_packs):
         sys.exit(0)
 
 def remaining_cards(P1_rem, P2_rem, P3_rem, P4_rem, pile_rem):
-    '''Draws the amount of remaining cards for each player on the win.'''
+    '''Draws the face_mode["amount"] of remaining cards for each player on the win.'''
     # Draws over the previous text so that the win doesn't get cluttered.
     pygame.draw.rect(win, BLACK, (0,0, 105, 30))
     pygame.draw.rect(win, BLACK, (390, 470, 105, 30))
@@ -116,21 +109,73 @@ def remaining_cards(P1_rem, P2_rem, P3_rem, P4_rem, pile_rem):
     win.blit(textObj4, (0, 470))
     win.blit(textObj5, (200, 470))
 
-def game_turn(p_packs, card_pile, card_location, to_angle):
+def pile_empty(player_packs, card_pile, player, text):
+    '''Adds the played cards to the winner's hand
+     and prints the winning text on the screen.'''
+    # Adds the played cards to the slap winner's cards.
+    player_packs[player-1].hand.extend(card_pile)
+    # Empties the played cards.
+    del card_pile[:]
+    # Renders the supplied victory text on win.
+    fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 32)
+    textObj = fontObj.render(text, True, GREEN)
+    win.blit(textObj, (125, 0))
+    pygame.display.update()
+    # Waits two seconds after a winning slap.
+    time.sleep(2)
+    # Removes the commands players input during the waiting period.
+    # Prevents other people's slaps from being registered.
+    pygame.event.clear()
+    win.fill(BLACK)
+
+def game_turn(p_packs, card_pile, card_location, angle):
     '''Handles the regular turns of each player.'''
     next_card = p_packs.hand[0]
-    rotated_card = pygame.transform.rotate(next_card.img, to_angle)
+    rotated_card = pygame.transform.rotate(next_card.img, angle)
     win.blit(rotated_card, card_location)
     card_pile.append(p_packs.hand[0])
     # Deletes the played card from the player's hand.
     p_packs.hand.pop(0)
 
-def win_update():
+def face_win(player_packs, card_pile, face_mode):
+    '''Handles the face card mode wins.'''
+    pile_empty(player_packs, card_pile, face_mode["player"],
+    "P{0} won the cards.".format(face_mode["player"]))
+    face_mode["player"] = 0
+    face_mode["amount"] = 0
+    return face_mode["player"]
 
-    win.fill((0, 0, 0))
-    pygame.display.update()
+def turn_check(player_packs, turn, face_mode, card_pile, event, location, key):
+    '''Checks all the various things that need to be checked each turn.'''
+    # Skips the players turn if they don't have any cards
+    # and face card mode isn't on.
+    if len(player_packs[turn-1].hand) == 0 and face_mode["player"] == 0:
+        if turn != 4:
+            turn += 1
+        else:
+            turn = 1
+    # Defined in case the player runs out of cards while
+    # in face card mode.
+    elif len(player_packs[0].hand) == 0 and face_mode["player"] != 0:
+        turn = face_win(player_packs, card_pile, face_mode)
 
-def slap_check(card_pile, player_packs, player, turn, players):
+    # The player who played the face card won.
+    elif face_mode["amount"] == 0 and face_mode["player"] != 0:
+        turn = face_win(player_packs, card_pile, face_mode)
+
+    elif event.type == pygame.KEYDOWN and event.key == key:
+        game_turn(player_packs[turn-1], card_pile, (location["x"],
+        location["y"]), location["angle"])
+        if face_mode["player"] == 0 and turn != 4:
+            turn += 1
+        elif face_mode["player"] == 0 and turn == 4:
+            turn = 1
+        else:
+            face_mode["amount"] -= 1
+        location["angle"] -= 5
+    return turn
+
+def slap_check(card_pile, player_packs, player, turn, players, face_mode):
     '''Checks whether a slap was premature or victorious.'''
     # A safeguard in case someone slaps before two cards have been played.
     if len(card_pile) < 2:
@@ -141,25 +186,14 @@ def slap_check(card_pile, player_packs, player, turn, players):
         previous_card = card_pile[-2].value
     # Checks if the slapping player was victorious.
     if current_card == previous_card:
-        # Adds the played cards to the slap winner's cards.
-        player_packs[player-1].hand.extend(card_pile)
-        # Empties the played cards.
-        del card_pile[:]
-        # Renders the slap victory text on win.
-        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 32)
-        textObj = fontObj.render("P{0} won the slap".format(player),
-                                 True, GREEN)
-        win.blit(textObj, (125, 0))
-        pygame.display.update()
-        # Waits two seconds after a winning slap.
-        time.sleep(2)
-        # Removes the commands players input during the waiting period.
-        # Prevents other people's slaps from being registered.
-        pygame.event.clear()
-        win.fill(BLACK)
+        pile_empty(player_packs, card_pile, player,
+        "P{0} won the slap".format(player))
+        # Clears the face card mode, if it is active.
+        face_mode["player"] = 0
+        face_mode["amount"] = 0
         # The winner of the slap plays next.
         return player
-    # If the player slapped prematurely, the other players get given a card,
+    # If the player slapped prematurely, the other players get given a card;
     # unless they have no cards.
     else:
         for i in range(players):
@@ -180,11 +214,21 @@ def slap_check(card_pile, player_packs, player, turn, players):
 def main():
     players = 4
     turn = 1
-    x_location = 40
-    y_location = 40
-    angle = 0
-    amount = 0
-    location = (x_location, y_location)
+    # These are defined in a dictionary, so the angle's value
+    # can be changed in a function without a return value.
+    # Also possibly the x and y coordinates later if needed.
+    location = {
+        "x" : 40,
+        "y" : 40,
+        "angle" : 0
+    }
+    # Used for keeping track of the face card mode.
+    # Player designates the player who played the face card.
+    # Amount designates the amount of cards the next player must play.
+    face_mode = {
+        "player" : 0,
+        "amount" : 0
+    }
     running = True
     player_packs = card_loader(players)
     card_pile = []
@@ -192,6 +236,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            
             # Checks if the card_pile is empty, so the face card rule isn't
             # invoked before any cards have been played.
             if card_pile:
@@ -199,62 +244,54 @@ def main():
                 # (An ace, king, queen or jack.)
                 if card_pile[-1].value == 11 or card_pile[-1].value == 12\
                 or card_pile[-1].value == 13 or card_pile[-1].value == 14:
-                    amount = card_pile[-1].value-10
-                    if turn < 4:
+                    face_mode["amount"] = card_pile[-1].value-10
+                    if face_mode["player"] == 0:
+                        face_mode["player"] = turn
+                        if turn != 4:
+                            turn = 1
+                        else:
+                            turn += 1
+                    elif face_mode["player"] != 4:
+                        face_mode["player"] += 1
                         turn += 1
                     else:
+                        face_mode["player"] = 1
                         turn = 1
-            
+
             if turn == 1:
-                if len(player_packs[0].hand) == 0:
-                    turn = 2
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_w:
-                    game_turn(player_packs[0], card_pile, location, angle)
-                    if amount == 0:
-                        turn = 2
-                    angle -= 5
+                turn = turn_check(player_packs, turn, face_mode, card_pile, event,
+                location, pygame.K_w)
 
             elif turn == 2:
-                if len(player_packs[1].hand) == 0:
-                    turn = 3
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_u:
-                    game_turn(player_packs[1], card_pile, location, angle)
-                    if amount == 0:
-                        turn = 3
-                    angle -= 5
+                turn = turn_check(player_packs, turn, face_mode, card_pile, event,
+                location, pygame.K_u)
 
             elif turn == 3:
-                if len(player_packs[2].hand) == 0:
-                    turn = 4
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_s:
-                    game_turn(player_packs[2], card_pile, location, angle)
-                    if amount == 0:
-                        turn = 4
-                    angle -= 5
+                turn = turn_check(player_packs, turn, face_mode, card_pile, event,
+                location, pygame.K_s)
 
             elif turn == 4:
-                if len(player_packs[3].hand) == 0:
-                    turn = 1
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_j:
-                    game_turn(player_packs[3], card_pile, location, angle)
-                    if amount == 0:
-                        turn = 1
-                    angle -= 5
+                turn = turn_check(player_packs, turn, face_mode, card_pile, event,
+                location, pygame.K_j)
             
             # Player 1 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
-                turn = slap_check(card_pile, player_packs, 1, turn, players)
+                turn = slap_check(card_pile, player_packs, 1, turn, players,
+                face_mode)
 
             # Player 2 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_i:
-                turn = slap_check(card_pile, player_packs, 2, turn, players)
+                turn = slap_check(card_pile, player_packs, 2, turn, players,
+                face_mode)
 
             # Player 3 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
-                turn = slap_check(card_pile, player_packs, 3, turn, players)
+                turn = slap_check(card_pile, player_packs, 3, turn, players,
+                face_mode)
             #Player 4 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_k:
-                turn = slap_check(card_pile, player_packs, 4, turn, players)
+                turn = slap_check(card_pile, player_packs, 4, turn, players,
+                face_mode)
 
             # Inserts the remaining card amounts onto the win.
             remaining_cards(len(player_packs[0].hand), len(player_packs[1].hand),
