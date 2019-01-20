@@ -28,3 +28,6 @@ Possibly add a separate function that handles all window updates.
 Add more comments to the code.
 
 Add the sandwich rule (and possibly a way to easily turn it off).
+
+Currently slaps aren't allowed after the last card has been played in face card mode.
+Should this be changed?
