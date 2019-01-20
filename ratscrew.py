@@ -313,7 +313,6 @@ def main():
             len(player_packs[2].hand), len(player_packs[3].hand), len(card_pile))
 
             victory_check(player_packs)
-            print(turn)
 
         pygame.display.update()
         victory_check(player_packs)
