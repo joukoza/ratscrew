@@ -24,3 +24,7 @@ uses players, which is currently defined only in main. So if someone were to joi
 in the middle of the game, they wouldn't get cards from the player who made the wrong slap.
 
 Possibly add a separate function that handles all window updates.
+
+Add more comments to the code.
+
+Add the sandwich rule (and possibly a way to easily turn it off).
