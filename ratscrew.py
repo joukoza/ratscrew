@@ -141,9 +141,12 @@ def face_win(player_packs, card_pile, face_mode):
     '''Handles the face card mode wins.'''
     pile_empty(player_packs, card_pile, face_mode["player"],
     "P{0} won the cards.".format(face_mode["player"]))
+    winner = face_mode["player"]
+    # Changes these to zero, so that the game is no longer in face card mode.
     face_mode["player"] = 0
     face_mode["amount"] = 0
-    return face_mode["player"]
+    # Returns the winning player's number, so it can be assigned to turn.
+    return winner
 
 def turn_check(player_packs, turn, face_mode, card_pile, event, location, key):
     '''Checks all the various things that need to be checked each turn.'''
@@ -170,6 +173,7 @@ def turn_check(player_packs, turn, face_mode, card_pile, event, location, key):
             turn += 1
         elif face_mode["player"] == 0 and turn == 4:
             turn = 1
+        # The face card mode is on, and thus the turn isn't changed.
         else:
             face_mode["amount"] -= 1
         location["angle"] -= 5
@@ -225,10 +229,14 @@ def main():
     # Used for keeping track of the face card mode.
     # Player designates the player who played the face card.
     # Amount designates the amount of cards the next player must play.
+    # Also defined in a dictionary, so the values can be changed in functions.
     face_mode = {
         "player" : 0,
         "amount" : 0
     }
+    # Used to prevent the face card mode from being initiated by
+    # the same card.
+    previous_card = 0
     running = True
     player_packs = card_loader(players)
     card_pile = []
@@ -237,27 +245,36 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             
-            # Checks if the card_pile is empty, so the face card rule isn't
-            # invoked before any cards have been played.
+            # Checks if the card_pile is empty, so the program doesn't crash if
+            # card_pile is empty.
             if card_pile:
-                # Checks if the last played card was a face card.
-                # (An ace, king, queen or jack.)
-                if card_pile[-1].value == 11 or card_pile[-1].value == 12\
-                or card_pile[-1].value == 13 or card_pile[-1].value == 14:
-                    face_mode["amount"] = card_pile[-1].value-10
-                    if face_mode["player"] == 0:
-                        face_mode["player"] = turn
-                        if turn != 4:
-                            turn = 1
-                        else:
-                            turn += 1
-                    elif face_mode["player"] != 4:
-                        face_mode["player"] += 1
-                        turn += 1
-                    else:
-                        face_mode["player"] = 1
-                        turn = 1
+                # Checks if the played card is different from the previous card.
+                # Otherwise the following code would be executed by the
+                # first face card and initiated by all events.
+                if previous_card != card_pile[-1]:
+                    # Checks if the last played card was a face card.
+                    # (An ace, king, queen or jack.)
+                    if card_pile[-1].value == 11 or card_pile[-1].value == 12\
+                    or card_pile[-1].value == 13 or card_pile[-1].value == 14:
+                        previous_card = card_pile[-1]
+                        face_mode["amount"] = card_pile[-1].value-10
+                        # If face mode wasn't previously active.
+                        if face_mode["player"] == 0 and turn != 1:
+                            # Subtracting one because turn has already been
+                            # changed in the turn_check function.
+                            face_mode["player"] = turn-1
+                        elif face_mode["player"] == 0 and turn == 1:
+                            face_mode["player"] = 4
+                        # If face mode was previously active.
+                        elif face_mode["player"] > 0:
+                            if turn != 4:
+                                face_mode["player"] = turn
+                                turn += 1
+                            else:
+                                face_mode["player"] = 4
+                                turn = 1
 
+            # Turn events for each player.
             if turn == 1:
                 turn = turn_check(player_packs, turn, face_mode, card_pile, event,
                 location, pygame.K_w)
@@ -274,30 +291,29 @@ def main():
                 turn = turn_check(player_packs, turn, face_mode, card_pile, event,
                 location, pygame.K_j)
             
-            # Player 1 slaps.
+            # The slap events for each player.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 turn = slap_check(card_pile, player_packs, 1, turn, players,
                 face_mode)
 
-            # Player 2 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_i:
                 turn = slap_check(card_pile, player_packs, 2, turn, players,
                 face_mode)
 
-            # Player 3 slaps.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
                 turn = slap_check(card_pile, player_packs, 3, turn, players,
                 face_mode)
-            #Player 4 slaps.
+
             if event.type == pygame.KEYDOWN and event.key == pygame.K_k:
                 turn = slap_check(card_pile, player_packs, 4, turn, players,
                 face_mode)
 
-            # Inserts the remaining card amounts onto the win.
+            # Inserts the remaining card amounts onto the window.
             remaining_cards(len(player_packs[0].hand), len(player_packs[1].hand),
             len(player_packs[2].hand), len(player_packs[3].hand), len(card_pile))
 
             victory_check(player_packs)
+            print(turn)
 
         pygame.display.update()
         victory_check(player_packs)
