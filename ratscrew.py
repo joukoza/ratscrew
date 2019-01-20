@@ -159,7 +159,7 @@ def turn_check(player_packs, turn, face_mode, card_pile, event, location, key):
             turn = 1
     # Defined in case the player runs out of cards while
     # in face card mode.
-    elif len(player_packs[0].hand) == 0 and face_mode["player"] != 0:
+    elif len(player_packs[turn-1].hand) == 0 and face_mode["player"] != 0:
         turn = face_win(player_packs, card_pile, face_mode)
 
     # The player who played the face card won.
