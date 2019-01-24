@@ -33,6 +33,7 @@ Currently slaps aren't allowed after the last card has been played in face card 
 Should this be changed?
 
 
-Bugs
-At least for player 3
-After winning cards and starting next turn, automaticly win the played card back
+Bugs,
+At least for player 3.
+After winning cards and starting next turn, automaticly win the played card back, if the card is J, Q, K or Ace.
+Caused by the next player having no cards.
