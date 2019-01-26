@@ -32,3 +32,5 @@ After winning cards and starting next turn, automaticly win the played card back
 Caused by the next player having no cards.
 
 If only two players are present, player 1 needs to press the card button twice for it to register.
+
+In 3 player cases, player 4 gets given a card.
