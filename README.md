@@ -38,3 +38,5 @@ At least for player 3.
 After winning cards and starting next turn, automaticly win the played card back, if the card is J, Q, K or Ace.
 
 Caused by the next player having no cards.
+
+If player 1 slaps on an empty table, the other players don't get given cards. Doesn't seem to be the case for other players.
