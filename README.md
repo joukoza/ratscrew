@@ -30,3 +30,5 @@ Bugs,
 At least for player 3.
 After winning cards and starting next turn, automaticly win the played card back, if the card is J, Q, K or Ace.
 Caused by the next player having no cards.
+
+If only two players are present, player 1 needs to press the card button twice for it to register.
