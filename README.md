@@ -16,9 +16,6 @@ P4: "j" for a card
 TODO:
 ratscrew.py:
 
-The game crashes if somebody makes a wrong slap and doesn't have enough cards
-to give to other players.
-
 Possibly add a separate function that handles all window updates.
 
 Add more comments to the code.
@@ -32,7 +29,7 @@ Should this be changed?
 Bugs,
 At least for player 3.
 After winning cards and starting next turn, automaticly win the played card back, if the card is J, Q, K or Ace.
-
 Caused by the next player having no cards.
 
-If player 1 slaps on an empty table, the other players don't get given cards. Doesn't seem to be the case for other players.
+The game crashes if somebody makes a wrong slap and doesn't have enough cards
+to give to other players.
