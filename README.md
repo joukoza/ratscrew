@@ -31,3 +31,5 @@ Add the sandwich rule (and possibly a way to easily turn it off).
 
 Currently slaps aren't allowed after the last card has been played in face card mode.
 Should this be changed?
+
+Currently the game crashes if a fourth player slaps while the game was started with three players.
