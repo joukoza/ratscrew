@@ -57,41 +57,53 @@ def card_loader(players, card_pile, location):
         draw_card(playing_cards[extra_card], location)
         playing_cards.pop(extra_card)
     for i in range(4):
-        player_packs.append(player("Matto{0}".format(i), playing_cards[:card_amount]))
+        player_packs.append(player("Matto{0}".format(i+1), playing_cards[:card_amount]))
         del playing_cards[:card_amount]
     return player_packs
 
-def draw_text(text, location, size, color):
-    font_obj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", size)
+def draw_text(text, color, rect_draw):
+    '''Draws event text on the screen and waits 2 seconds after that.'''
+    text_size = 28
+    font_obj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", text_size)
     text_obj = font_obj.render(text, True, color)
+    # Location of the event text.
+    location = (115, 0)
     win.blit(text_obj, location)
     pygame.display.update()
+    # The text is displayed for two seconds so that players have time to react.
+    time.sleep(2)
+    # Removes the commands players input during the waiting period.
+    pygame.event.clear()
+    # Draws a rectangle over the previous text. Necessary for the time being
+    # because cards need to remain on screen on losing slaps.
+    if rect_draw == True:
+        rect_size = (115, 5, 270, 35)
+        pygame.draw.rect(win, BLACK, rect_size)
+    else:
+        win.fill(BLACK)
 
 def victory_check(player_packs):
     P1_cards = len(player_packs[0].hand)
     P2_cards = len(player_packs[1].hand)
     P3_cards = len(player_packs[2].hand)
     P4_cards = len(player_packs[3].hand)
+    text_size = 28
     if P1_cards != 0 and P2_cards == 0 and P3_cards == 0 and P4_cards == 0:
-        draw_text("P1 won the game", (100, 0), 36, RED)
-        time.sleep(2)
+        draw_text("P1 won the game", WHITE, False)
         sys.exit()
     elif P1_cards == 0 and P2_cards != 0 and P3_cards == 0 and P4_cards == 0:
-        draw_text("P2 won the game", (100, 0), 36, RED)
-        time.sleep(2)
+        draw_text("P2 won the game", WHITE, False)
         sys.exit(0)
     elif P1_cards == 0 and P2_cards == 0 and P3_cards != 0 and P4_cards == 0:
-        draw_text("P3 won the game", (100, 0), 36, RED)
-        time.sleep(2)
+        draw_text("P3 won the game", WHITE, False)
         sys.exit(0)
     elif P1_cards == 0 and P2_cards == 0 and P3_cards == 0 and P4_cards != 0:
-        draw_text("P4 won the game", (100, 0), 36, RED)
-        time.sleep(2)
+        draw_text("P4 won the game", WHITE, False)
         sys.exit(0)
         
 def remaining_cards(P1_rem, P2_rem, P3_rem, P4_rem, pile_rem):
-    '''Draws the face_mode["amount"] of remaining cards for each player on the win.'''
-    # Draws over the previous text so that the win doesn't get cluttered.
+    '''Draws the amount of remaining cards for each player on the screen.'''
+    # Draws over the previous text so that the screen doesn't get cluttered.
     pygame.draw.rect(win, BLACK, (0,0, 105, 30))
     pygame.draw.rect(win, BLACK, (390, 470, 105, 30))
     pygame.draw.rect(win, BLACK, (390, 0, 115, 30))
@@ -114,25 +126,6 @@ def remaining_cards(P1_rem, P2_rem, P3_rem, P4_rem, pile_rem):
     win.blit(textObj4, (0, 470))
     win.blit(textObj5, (200, 470))
 
-def pile_empty(player_packs, card_pile, player, text):
-    '''Adds the played cards to the winner's hand
-     and prints the winning text on the screen.'''
-    # Adds the played cards to the slap winner's cards.
-    player_packs[player].hand.extend(card_pile)
-    # Empties the played cards.
-    del card_pile[:]
-    # Renders the supplied victory text on win.
-    fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 32)
-    textObj = fontObj.render(text, True, GREEN)
-    win.blit(textObj, (125, 0))
-    pygame.display.update()
-    # Waits two seconds after a winning slap.
-    time.sleep(2)
-    # Removes the commands players input during the waiting period.
-    # Prevents other people's slaps from being registered.
-    pygame.event.clear()
-    win.fill(BLACK)
-
 def draw_card(card, location):
     '''Draws a card on the screen and changes location's angle value.'''
     angle = location["angle"]
@@ -152,9 +145,13 @@ def game_turn(player_hand, card_pile, location):
     
 def face_win(player_packs, card_pile, face_mode):
     '''Handles the face card mode wins.'''
-    pile_empty(player_packs, card_pile, face_mode["face_player"],
-    "P{0} won the cards.".format(face_mode["face_player"]+1))
     winner = face_mode["face_player"]
+    text = "P{0} won the cards".format(winner+1)
+    draw_text(text, GREEN, False)
+    # Adds the played cards to the winner's cards.
+    player_packs[winner].hand.extend(card_pile)
+    # Empties the played cards.
+    del card_pile[:]
     # Changes these to zero, so that the game is no longer in face card mode.
     face_mode["face_player"] = -1
     face_mode["amount"] = -1
@@ -164,12 +161,10 @@ def face_win(player_packs, card_pile, face_mode):
 
 def turn_check(player_packs, turn, face_mode, card_pile, event, location, key):
     '''Checks all the various things that need to be checked each turn.'''
-
     # Defined in case the player runs out of cards while
     # in face card mode.
     if len(player_packs[face_mode["card_player"]].hand) == 0 and face_mode["face_player"] != -1:
         turn = face_win(player_packs, card_pile, face_mode)
-
     # The player who played the face card won.
     elif face_mode["amount"] == 0 and face_mode["face_player"] != -1:
         turn = face_win(player_packs, card_pile, face_mode)
@@ -201,8 +196,12 @@ def slap_check(card_pile, player_packs, player, turn, players, face_mode, locati
         previous_card = card_pile[-2].value
     # Checks if the slapping player was victorious.
     if current_card == previous_card:
-        pile_empty(player_packs, card_pile, player,
-        "P{0} won the slap".format(player))
+        text = "P{0} won the slap".format(player)
+        draw_text(text, GREEN, False)
+        # Adds the played cards to the slap winner's cards.
+        player_packs[player].hand.extend(card_pile)
+        # Empties the played cards.
+        del card_pile[:]
         # Clears the face card mode, if it is active.
         face_mode["face_player"] = -1
         face_mode["amount"] = -1
@@ -223,14 +222,9 @@ def slap_check(card_pile, player_packs, player, turn, players, face_mode, locati
         else:
             for i in range(0, len(loser_hand)):
                 game_turn(loser_hand, card_pile, location)
-        fontObj = pygame.font.Font("./data_files/BlackOpsOne-Regular.ttf", 36)
-        textObj = fontObj.render("P{0} lost the slap".format(player),
-                                 True, GREEN)
-        win.blit(textObj, (125, 0))
-        pygame.display.update()
-        time.sleep(2)
-        pygame.event.clear()
-        pygame.draw.rect(win, BLACK, (125, 5, 270, 35))
+        # Draws the losing text on the screen.
+        text = "P{0} lost the slap".format(player)
+        draw_text(text, RED, True)
         # The next turn remains unchanged.
         return turn
 
@@ -250,12 +244,11 @@ def main():
     # card_player designates the player who plays cards.
     # Amount designates the amount of cards the next player must play.
     # Also defined in a dictionary, so the values can be changed in functions.
-    # Numbers designates player indices in lists.
+    # The numbers designate player indices in lists.
     face_mode = {
         "face_player" : -1,
         "amount" : -1,
         "card_player": -1
-        
     }
     # Used to prevent the face card mode from being initiated by
     # the same card.
@@ -266,11 +259,8 @@ def main():
     while running:
         victory_check(player_packs)
         for event in pygame.event.get():
-            
-    
             if event.type == pygame.QUIT:
                 running = False
-
             # Checks if the card_pile is empty, so the program doesn't crash if
             # card_pile is empty.
             if card_pile:
@@ -303,12 +293,13 @@ def main():
                                 face_mode["face_player"] = 3
                                 face_mode["card_player"] = 0
                                 turn = 0
-                        # if card_player has no cards, go to next player
+                        # If card_player has no cards, go to the next player.
                         if (len(player_packs[face_mode["card_player"]].hand)) == 0:
                             face_mode["card_player"] = (face_mode["card_player"]+1)%4
                             turn = face_mode["card_player"]
-                            # Go to next player if he has cards left
-                            if (len(player_packs[face_mode["card_player"]].hand) == 0 and len(player_packs[(face_mode["card_player"]+1)%4].hand) != 0):
+                            # Go to the next player if he has cards left.
+                            if (len(player_packs[face_mode["card_player"]].hand) == 0 and 
+                            len(player_packs[(face_mode["card_player"]+1)%4].hand) != 0):
                                 face_mode["card_player"] = (face_mode["card_player"]+1)%4
                                 turn = face_mode["card_player"]
                                 
