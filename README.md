@@ -16,6 +16,13 @@ P4: "j" for a card
 TODO:
 ratscrew.py:
 
+The game crashes if somebody makes a wrong slap and doesn't have enough cards
+to give to other players.
+
+Related to the previous one, the for-loop that handles the wrong slaps in slap_check
+uses players, which is currently defined only in main. So if someone were to join
+in the middle of the game, they wouldn't get cards from the player who made the wrong slap.
+
 Possibly add a separate function that handles all window updates.
 
 Add more comments to the code.
@@ -24,13 +31,3 @@ Add the sandwich rule (and possibly a way to easily turn it off).
 
 Currently slaps aren't allowed after the last card has been played in face card mode.
 Should this be changed?
-
-
-Bugs,
-At least for player 3.
-After winning cards and starting next turn, automaticly win the played card back, if the card is J, Q, K or Ace.
-Caused by the next player having no cards.
-
-If only two players are present, player 1 needs to press the card button twice for it to register.
-
-In 3 player cases, player 4 gets given a card.
