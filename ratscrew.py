@@ -189,14 +189,14 @@ def slap_check(card_pile, player_packs, player, turn, players, face_mode, locati
     '''Checks whether a slap was premature or victorious.'''
     # A safeguard in case someone slaps before two cards have been played.
     if len(card_pile) < 2:
-        current_card = "cmon"
+        current_card = "cmon matto"
         previous_card = "lolnoob"
     else:
         current_card = card_pile[-1].value
         previous_card = card_pile[-2].value
     # Checks if the slapping player was victorious.
     if current_card == previous_card:
-        text = "P{0} won the slap".format(player)
+        text = "P{0} won the slap".format(player+1)
         draw_text(text, GREEN, False)
         # Adds the played cards to the slap winner's cards.
         player_packs[player].hand.extend(card_pile)
@@ -223,7 +223,7 @@ def slap_check(card_pile, player_packs, player, turn, players, face_mode, locati
             for i in range(0, len(loser_hand)):
                 game_turn(loser_hand, card_pile, location)
         # Draws the losing text on the screen.
-        text = "P{0} lost the slap".format(player)
+        text = "P{0} lost the slap".format(player+1)
         draw_text(text, RED, True)
         # The next turn remains unchanged.
         return turn
@@ -244,7 +244,7 @@ def main():
     # card_player designates the player who plays cards.
     # Amount designates the amount of cards the next player must play.
     # Also defined in a dictionary, so the values can be changed in functions.
-    # The numbers designate player indices in lists.
+    # Facemode numbers correspond player indices in player_packs list.
     face_mode = {
         "face_player" : -1,
         "amount" : -1,
@@ -328,19 +328,19 @@ def main():
 
             # The slap events for each player.
             if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
-                turn = slap_check(card_pile, player_packs, 1, turn, players,
+                turn = slap_check(card_pile, player_packs, 0, turn, players,
                 face_mode, location)
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_i:
-                turn = slap_check(card_pile, player_packs, 2, turn, players,
+                turn = slap_check(card_pile, player_packs, 1, turn, players,
                 face_mode, location)
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_d:
-                turn = slap_check(card_pile, player_packs, 3, turn, players,
+                turn = slap_check(card_pile, player_packs, 2, turn, players,
                 face_mode, location)
 
             if event.type == pygame.KEYDOWN and event.key == pygame.K_k:
-                turn = slap_check(card_pile, player_packs, 4, turn, players,
+                turn = slap_check(card_pile, player_packs, 3, turn, players,
                 face_mode, location)
 
             # Inserts the remaining card amounts onto the window.
