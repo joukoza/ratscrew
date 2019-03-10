@@ -21,7 +21,7 @@ class card():
         self.img = img
 
 class player():
-    '''Depicts a player who takes part in the game and has specific
+    '''Depicts a player who takes part in the game and has a specific
     set of cards(hand).'''
     def __init__(self, name, cards):
         self.name = name
@@ -83,11 +83,12 @@ def draw_text(text, color, rect_draw):
         win.fill(BLACK)
 
 def victory_check(player_packs):
+    '''Checks if any of the players have won (by checking if
+    the other players' hands are empty).'''
     P1_cards = len(player_packs[0].hand)
     P2_cards = len(player_packs[1].hand)
     P3_cards = len(player_packs[2].hand)
     P4_cards = len(player_packs[3].hand)
-    text_size = 28
     if P1_cards != 0 and P2_cards == 0 and P3_cards == 0 and P4_cards == 0:
         draw_text("P1 won the game", WHITE, False)
         sys.exit()
@@ -194,8 +195,14 @@ def slap_check(card_pile, player_packs, player, turn, players, face_mode, locati
     else:
         current_card = card_pile[-1].value
         previous_card = card_pile[-2].value
+    # Checks for the sandwich rule. Needs to be defined separately so the
+    # regular slaps aren't affected.
+    if len(card_pile) < 3:
+        sandwich_card = "embarassing"
+    else:
+        sandwich_card = card_pile[-3].value
     # Checks if the slapping player was victorious.
-    if current_card == previous_card:
+    if current_card == previous_card or current_card == sandwich_card:
         text = "P{0} won the slap".format(player+1)
         draw_text(text, GREEN, False)
         # Adds the played cards to the slap winner's cards.
@@ -210,10 +217,10 @@ def slap_check(card_pile, player_packs, player, turn, players, face_mode, locati
     # If the player slapped prematurely, the other players get given a card;
     # unless they have no cards.
     else:
-        loser_hand = player_packs[player-1].hand
+        loser_hand = player_packs[player].hand
         num_players = []
         for i in range(0,4):
-            if len(player_packs[i].hand) > 0 and i != player-1:
+            if len(player_packs[i].hand) > 0 and i != player:
                 num_players.append(i)
         if len(loser_hand) >= len(num_players):
             for i in num_players:
@@ -229,7 +236,8 @@ def slap_check(card_pile, player_packs, player, turn, players, face_mode, locati
         return turn
 
 def main():
-    players = 3
+    # Designates the number of players at the start of the game.
+    players = 4
     turn = 0
     # These are defined in a dictionary, so the angle's value
     # can be changed in a function without a return value.
