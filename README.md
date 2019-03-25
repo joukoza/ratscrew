@@ -39,3 +39,5 @@ BUGS
 There seems to be some mistakes in face_mode. It started happening in one game that
 P1 was skipped when P4 initiated face_mode. On another occasions it occurred that P4
 initiating the face_mode and P1 losing it, still gave P1 the win for it.
+
+These issues seem to be caused by the code that handles face_mode when it wasn't previously active.
