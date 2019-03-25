@@ -289,8 +289,8 @@ def main():
                             face_mode["face_player"] = turn-1
                             face_mode["card_player"] = turn
                         elif face_mode["face_player"] == -1 and turn == 0:
-                            face_mode["face_player"] = 0
-                            face_mode["card_player"] = 1
+                            face_mode["face_player"] = 3
+                            face_mode["card_player"] = 0
                         # If face mode was previously active.
                         elif face_mode["face_player"] > -1:
                             if turn != 3:
