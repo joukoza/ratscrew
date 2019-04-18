@@ -13,21 +13,27 @@ P3: "s" for a card
 P4: "j" for a card
     "k" for a slap
 
-TODO:
-ratscrew.py:
-
-The game crashes if somebody makes a wrong slap and doesn't have enough cards
-to give to other players.
-
-Related to the previous one, the for-loop that handles the wrong slaps in slap_check
-uses players, which is currently defined only in main. So if someone were to join
-in the middle of the game, they wouldn't get cards from the player who made the wrong slap.
-
-Possibly add a separate function that handles all window updates.
-
-Add more comments to the code.
-
-Add the sandwich rule (and possibly a way to easily turn it off).
+NOTES
 
 Currently slaps aren't allowed after the last card has been played in face card mode.
 Should this be changed?
+
+If player makes a wrong slap while the game is in face_mode and they
+don't have enough cards to give to other players, their remaining cards are
+placed in card_pile and they aren't registered as cards having been played in
+face_mode.
+
+If the person putting down the cards in face_mode runs out of cards, the game counts
+that as a win for the person who put the last face card.
+
+Sandwich-rule is implemented, i.e. slapping when current and 2nd previous card
+are the same value counts as a slap win.
+
+TODO:
+ratscrew.py:
+
+Add more comments to the code.
+
+BUGS
+
+NONE
