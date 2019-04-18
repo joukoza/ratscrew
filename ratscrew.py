@@ -2,7 +2,7 @@ import pygame, time, sys
 from random import shuffle
 
 pygame.init()
-win_width, win_height = 1000, 700
+win_width, win_height = 640, 480
 win = pygame.display.set_mode((win_width, win_height))
 
 BLACK = (0,0,0)
@@ -32,7 +32,7 @@ def card_loader(players, card_pile, location):
     corresponding suit, value and  image to each card.'''
     playing_cards = []
     ## The card dimensions. (X,Y)
-    dimensions = (225, 426)
+    dimensions = (160, 350)
     suits = ["clubs", "diamonds", "hearts", "spades"]
     player_packs = []
     for suit in suits:
@@ -106,10 +106,10 @@ def remaining_cards(P1_rem, P2_rem, P3_rem, P4_rem, pile_rem):
     '''Draws the amount of remaining cards for each player on the screen.'''
     # Draws over the previous text so that the screen doesn't get cluttered.
     pygame.draw.rect(win, BLACK, (0,0, 105, 30))
-    pygame.draw.rect(win, BLACK, (390, 470, 105, 30))
+    pygame.draw.rect(win, BLACK, (390, 390, 105, 30))
     pygame.draw.rect(win, BLACK, (390, 0, 115, 30))
-    pygame.draw.rect(win, BLACK, (0, 470, 115, 30))
-    pygame.draw.rect(win, BLACK, (200, 470, 115, 30))
+    pygame.draw.rect(win, BLACK, (0, 390, 115, 30))
+    pygame.draw.rect(win, BLACK, (200, 390, 115, 30))
     fontObj = pygame.font.Font("./data_files/Rationale-Regular.otf", 25)
     textObj = fontObj.render("P1 cards: {0}".format(P1_rem),
                              True, WHITE)
@@ -123,9 +123,9 @@ def remaining_cards(P1_rem, P2_rem, P3_rem, P4_rem, pile_rem):
                               True, WHITE)
     win.blit(textObj, (0, 0))
     win.blit(textObj2, (390, 0))
-    win.blit(textObj3, (390, 470))
-    win.blit(textObj4, (0, 470))
-    win.blit(textObj5, (200, 470))
+    win.blit(textObj3, (390, 390))
+    win.blit(textObj4, (0, 390))
+    win.blit(textObj5, (200, 390))
 
 def draw_card(card, location):
     '''Draws a card on the screen and changes location's angle value.'''
